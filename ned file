@@ -1,0 +1,17 @@
+simple node_lab6
+{
+    gates:
+        inout gate[];  // Two-way connections between nodes
+}
+
+network lab6_ProtocolPros
+{
+    submodules:
+        ProtocolPros[6]: node_lab6;  // Six nodes
+    connections:
+        ProtocolPros[0].gate++ <--> { delay = 100ms; } <--> ProtocolPros[1].gate++;
+        ProtocolPros[1].gate++ <--> { delay = 100ms; } <--> ProtocolPros[2].gate++;
+        ProtocolPros[2].gate++ <--> { delay = 100ms; } <--> ProtocolPros[3].gate++;
+        ProtocolPros[3].gate++ <--> { delay = 100ms; } <--> ProtocolPros[4].gate++;
+        ProtocolPros[4].gate++ <--> { delay = 100ms; } <--> ProtocolPros[5].gate++;
+}
