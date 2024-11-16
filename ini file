@@ -1,0 +1,13 @@
+[General]
+network = lab6_ProtocolPros
+record-eventlog = true  # Record the event log
+
+# Enable recording of hop count statistics
+**.hopCountVector.record = true
+**.scalar-recording = true
+
+[Config Lab_6]
+network = lab6_ProtocolPros
+repeat = 10  # Repeat the simulation 10 times for statistical analysis
+*.router_ProtocolPros[].source = intuniform(0, 5)
+*.router_ProtocolPros[].destination = intuniform(0, 5)
