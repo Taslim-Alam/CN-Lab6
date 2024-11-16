@@ -1,0 +1,58 @@
+#include <omnetpp.h>
+#include "packetProtocolPros_m.h"  // Include the generated message header
+
+using namespace omnetpp;
+
+class node_lab6 : public cSimpleModule {
+  private:
+    cStdDev hopCountStats;  // Use cStdDev to collect and calculate statistics
+
+  protected:
+    virtual void initialize() override;
+    virtual void handleMessage(cMessage *msg) override;
+};
+
+Define_Module(node_lab6);
+
+void node_lab6::initialize() {
+    if (getIndex() == 0) {
+        // Only the first node generates the message
+        packetProtocolPros *msg = new packetProtocolPros("initialMessage");
+        int n = getVectorSize();  // Total number of nodes
+        int dest = intuniform(0, n - 1);  // Random destination
+        msg->setSource(getIndex());
+        msg->setDestination(dest);
+        msg->setHopCount(0);
+        scheduleAt(0.0, msg);  // Schedule it at time 0
+    }
+}
+
+void node_lab6::handleMessage(cMessage *msg) {
+    packetProtocolPros *ttmsg = check_and_cast<packetProtocolPros *>(msg);
+
+    if (ttmsg->getDestination() == getIndex()) {
+        // If the message reached its destination
+        EV << "Message " << ttmsg << " arrived after " << ttmsg->getHopCount() << " hops.\n";
+        hopCountStats.collect(ttmsg->getHopCount());  // Collect hop count
+        delete ttmsg;
+
+        // Output the statistics
+        EV << "Mean hop count: " << hopCountStats.getMean() << "\n";
+        EV << "Standard deviation of hop count: " << hopCountStats.getStddev() << "\n";
+
+        // Record the statistics as scalars for analysis
+        recordScalar("Mean hop count", hopCountStats.getMean());
+        recordScalar("Stddev hop count", hopCountStats.getStddev());
+
+        // End the simulation after the message arrives
+        endSimulation();
+    } else {
+        // If the message is not at its destination, forward it
+        ttmsg->setHopCount(ttmsg->getHopCount() + 1);  // Increment hop count
+        int n = gateSize("gate");  // Total number of gates (neighbor nodes)
+        int k = intuniform(0, n - 1);  // Random gate selection
+
+        EV << "Forwarding message " << ttmsg << " on gate[" << k << "]\n";
+        send(ttmsg, "gate$o", k);  // Forward message through gate
+    }
+}
